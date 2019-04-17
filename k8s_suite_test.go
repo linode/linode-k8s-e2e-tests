@@ -2,34 +2,34 @@ package e2e_test
 
 import (
 	"flag"
-	"github.com/linode/linode-cloud-controller-manager/test/e2e/framework"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/appscode-cloud/linode-k8s-e2e-tests/framework"
 	"github.com/appscode/go/crypto/rand"
 	"github.com/onsi/ginkgo/reporters"
-	"k8s.io/client-go/util/homedir"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/kubernetes"
-	"time"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var (
-	useExisting = false
+	useExisting   = false
 	kubecofigFile = filepath.Join(homedir.HomeDir(), ".kube/config")
-	ClusterName = rand.WithUniqSuffix("ccm-linode")
+	ClusterName   = rand.WithUniqSuffix("ccm-linode")
 )
 
-
-func init()  {
+func init() {
 	flag.StringVar(&framework.Image, "image", framework.Image, "registry/repository:tag")
 	flag.StringVar(&framework.ApiToken, "api-token", os.Getenv("LINODE_API_TOKEN"), "linode api token")
 
 	flag.BoolVar(&useExisting, "use-existing", useExisting, "Use existing kubernetes cluster")
-	flag.StringVar(&kubecofigFile, "kubeconfig", kubecofigFile, "To use existing cluster provide kubeconfig file" )
+	flag.StringVar(&kubecofigFile, "kubeconfig", kubecofigFile, "To use existing cluster provide kubeconfig file")
 }
 
 const (
@@ -40,7 +40,6 @@ var (
 	root *framework.Framework
 )
 
-
 func TestE2e(t *testing.T) {
 	RegisterFailHandler(Fail)
 	SetDefaultEventuallyTimeout(TIMEOUT)
@@ -50,7 +49,7 @@ func TestE2e(t *testing.T) {
 
 }
 
-var _ = BeforeSuite (func() {
+var _ = BeforeSuite(func() {
 
 	if !useExisting {
 		err := framework.CreateCluster(ClusterName)
@@ -75,23 +74,11 @@ var _ = BeforeSuite (func() {
 	// Create namespace
 	err = root.CreateNamespace()
 	Expect(err).NotTo(HaveOccurred())
-
-	err = root.ApplyManifest()
-	Expect(err).NotTo(HaveOccurred())
-
 })
 
 var _ = AfterSuite(func() {
-	/*err := root.DeleteManifest()
-	Expect(err).NotTo(HaveOccurred())*/
-
-
 	if !useExisting {
 		err := framework.DeleteCluster()
 		Expect(err).NotTo(HaveOccurred())
 	}
-
-
-
 })
-

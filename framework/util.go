@@ -1,22 +1,25 @@
 package framework
 
 import (
-	"fmt"
-	"github.com/golang/glog"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
 	"time"
-	"strings"
+
+	"github.com/appscode/go/wait"
+
+	"github.com/golang/glog"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
 	scriptDirectory = "scripts"
-	retryInterval = 5 * time.Second
-	retryTimout = 15 * time.Minute
-
+	RetryInterval   = 5 * time.Second
+	RetryTimout     = 5 * time.Minute
 )
 
 func RunScript(script string, args ...string) error {
@@ -42,14 +45,33 @@ func deleteInForeground() *metav1.DeleteOptions {
 	return &metav1.DeleteOptions{PropagationPolicy: &policy}
 }
 
-func ApplyManifest(commandName, manifest string) error {
-	args := []string{commandName, "-f", "-"}
-	cmd := exec.Command("kubectl", args...)
-	cmd.Stdin = strings.NewReader(manifest)
-	out, err := cmd.CombinedOutput()
-	fmt.Println(string(out))
+func getHTTPResponse(link string) (bool, string, error) {
+	resp, err := http.Get(link)
 	if err != nil {
-		return err
+		return false, "", err
 	}
-	return nil
+	defer resp.Body.Close()
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return false, "", err
+	}
+
+	return resp.StatusCode == 200, string(bodyBytes), nil
+}
+
+func WaitForHTTPResponse(link string, podName string) error {
+	return wait.PollImmediate(RetryInterval, RetryTimout, func() (bool, error) {
+		ok, resp, err := getHTTPResponse(link)
+		log.Println(resp)
+		if err != nil {
+			return false, nil
+		}
+		if ok {
+			log.Println("Got response from " + podName + " using url " + link)
+			return true, nil
+		}
+
+		return false, nil
+	})
 }

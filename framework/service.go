@@ -2,40 +2,42 @@ package framework
 
 import (
 	"fmt"
+	"net/url"
+	"time"
+
+	"github.com/pkg/errors"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"github.com/pkg/errors"
-	"net/url"
-	"time"
 )
 
-func (i *lbInvocation) CreateService(selector map[string]string) error {
+func (i *lbInvocation) CreateService(serviceName string, selector map[string]string, isLoadBalancer bool) error {
+	serviceType := core.ServiceTypeClusterIP
+	if isLoadBalancer {
+		serviceType = core.ServiceTypeLoadBalancer
+	}
 	_, err := i.kubeClient.CoreV1().Services(i.Namespace()).Create(&core.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      testServerResourceName,
+			Name:      serviceName,
 			Namespace: i.Namespace(),
-			Labels: map[string]string{
-				"app": "test-server-" + i.app,
-			},
 		},
 		Spec: core.ServiceSpec{
-			Ports: i.testServerServicePorts(),
+			Ports:    i.testServerServicePorts(),
 			Selector: selector,
-			Type: core.ServiceTypeLoadBalancer,
+			Type:     serviceType,
 		},
 	})
 
 	return err
 }
 
-func (i *lbInvocation) getLoadBalancerURLs() ([]string, error) {
+func (i *lbInvocation) getLoadBalancerURLs(name string) ([]string, error) {
 	var serverAddr []string
 
-	svc, err := i.GetServiceWithLoadBalancerStatus(testServerResourceName, i.Namespace())
+	svc, err := i.GetServiceWithLoadBalancerStatus(name, i.Namespace())
 	if err != nil {
-		return  serverAddr, err
+		return serverAddr, err
 	}
 
 	ips := make([]string, 0)
@@ -65,6 +67,11 @@ func (i *lbInvocation) getLoadBalancerURLs() ([]string, error) {
 	return serverAddr, nil
 }
 
+func (i *lbInvocation) DeleteService(name string) error {
+	err := i.kubeClient.CoreV1().Services(i.Namespace()).Delete(name, nil)
+	return err
+}
+
 func (i *lbInvocation) GetServiceWithLoadBalancerStatus(name, namespace string) (*core.Service, error) {
 	var (
 		svc *core.Service
@@ -84,13 +91,11 @@ func (i *lbInvocation) GetServiceWithLoadBalancerStatus(name, namespace string) 
 	return svc, nil
 }
 
-
 func (i *lbInvocation) testServerServicePorts() []core.ServicePort {
 	return []core.ServicePort{
 		{
-			Name:       "http-1",
 			Port:       80,
-			TargetPort: intstr.FromInt(8080),
+			TargetPort: intstr.FromInt(80),
 			Protocol:   "TCP",
 		},
 	}

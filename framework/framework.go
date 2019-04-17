@@ -12,9 +12,8 @@ var (
 )
 
 const (
-	MaxRetry     = 100
-	frontenImage = "gcr.io/google-samples/hello-frontend:1.0"
-	backendImage = "gcr.io/google-samples/hello-go-gke:1.0"
+	frontendImage = "gcr.io/google-samples/hello-frontend:1.0"
+	backendImage  = "gcr.io/google-samples/hello-go-gke:1.0"
 )
 
 type Framework struct {

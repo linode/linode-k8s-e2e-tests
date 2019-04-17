@@ -5,10 +5,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (i *lbInvocation) GetNetworkPolicyObject(labels map[string]string) *v1.NetworkPolicy {
+func (i *lbInvocation) GetNetworkPolicyObject(name string, labels map[string]string) *v1.NetworkPolicy {
 	return &v1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "network-policy",
+			Name:      name,
 			Namespace: i.Namespace(),
 		},
 		Spec: v1.NetworkPolicySpec{
@@ -37,4 +37,8 @@ func (i *lbInvocation) CreateNetworkPolicy(np *v1.NetworkPolicy) error {
 	_, err := i.kubeClient.NetworkingV1().NetworkPolicies(i.Namespace()).Create(np)
 
 	return err
+}
+
+func (i *lbInvocation) DeleteNetworkPolicy(name string) error {
+	return i.kubeClient.NetworkingV1().NetworkPolicies(i.Namespace()).Delete(name, nil)
 }

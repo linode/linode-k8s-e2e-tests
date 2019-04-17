@@ -19,7 +19,7 @@ import (
 const (
 	scriptDirectory = "scripts"
 	RetryInterval   = 5 * time.Second
-	RetryTimout     = 5 * time.Minute
+	RetryTimout     = 1 * time.Minute
 )
 
 func RunScript(script string, args ...string) error {
@@ -60,15 +60,14 @@ func getHTTPResponse(link string) (bool, string, error) {
 	return resp.StatusCode == 200, string(bodyBytes), nil
 }
 
-func WaitForHTTPResponse(link string, podName string) error {
+func WaitForHTTPResponse(link string) error {
 	return wait.PollImmediate(RetryInterval, RetryTimout, func() (bool, error) {
-		ok, resp, err := getHTTPResponse(link)
-		log.Println(resp)
+		ok, _, err := getHTTPResponse(link)
 		if err != nil {
 			return false, nil
 		}
 		if ok {
-			log.Println("Got response from " + podName + " using url " + link)
+			log.Println("Got response from the Backend Service")
 			return true, nil
 		}
 

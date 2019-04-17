@@ -18,7 +18,7 @@ func (i *lbInvocation) GetFrontendPodObject(podName string, labels map[string]st
 			Containers: []core.Container{
 				{
 					Name:  "nginx",
-					Image: frontenImage,
+					Image: frontendImage,
 					Lifecycle: &core.Lifecycle{
 						PreStop: &core.Handler{
 							Exec: &core.ExecAction{

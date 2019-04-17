@@ -23,7 +23,13 @@ func (i *lbInvocation) CreateService(serviceName string, selector map[string]str
 			Namespace: i.Namespace(),
 		},
 		Spec: core.ServiceSpec{
-			Ports:    i.testServerServicePorts(),
+			Ports: []core.ServicePort{
+				{
+					Port:       80,
+					TargetPort: intstr.FromInt(80),
+					Protocol:   "TCP",
+				},
+			},
 			Selector: selector,
 			Type:     serviceType,
 		},
@@ -89,14 +95,4 @@ func (i *lbInvocation) GetServiceWithLoadBalancerStatus(name, namespace string) 
 		return nil, errors.Errorf("failed to get Status.LoadBalancer.Ingress for service %s/%s", name, namespace)
 	}
 	return svc, nil
-}
-
-func (i *lbInvocation) testServerServicePorts() []core.ServicePort {
-	return []core.ServicePort{
-		{
-			Port:       80,
-			TargetPort: intstr.FromInt(80),
-			Protocol:   "TCP",
-		},
-	}
 }

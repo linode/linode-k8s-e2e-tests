@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-func (i *lbInvocation) CreateService(serviceName string, selector map[string]string, isLoadBalancer bool) error {
+func (i *k8sInvocation) CreateService(serviceName string, selector map[string]string, isLoadBalancer bool) error {
 	serviceType := core.ServiceTypeClusterIP
 	if isLoadBalancer {
 		serviceType = core.ServiceTypeLoadBalancer
@@ -38,7 +38,7 @@ func (i *lbInvocation) CreateService(serviceName string, selector map[string]str
 	return err
 }
 
-func (i *lbInvocation) getLoadBalancerURLs(name string) ([]string, error) {
+func (i *k8sInvocation) getLoadBalancerURLs(name string) ([]string, error) {
 	var serverAddr []string
 
 	svc, err := i.GetServiceWithLoadBalancerStatus(name, i.Namespace())
@@ -73,12 +73,12 @@ func (i *lbInvocation) getLoadBalancerURLs(name string) ([]string, error) {
 	return serverAddr, nil
 }
 
-func (i *lbInvocation) DeleteService(name string) error {
+func (i *k8sInvocation) DeleteService(name string) error {
 	err := i.kubeClient.CoreV1().Services(i.Namespace()).Delete(name, nil)
 	return err
 }
 
-func (i *lbInvocation) GetServiceWithLoadBalancerStatus(name, namespace string) (*core.Service, error) {
+func (i *k8sInvocation) GetServiceWithLoadBalancerStatus(name, namespace string) (*core.Service, error) {
 	var (
 		svc *core.Service
 		err error
@@ -92,7 +92,7 @@ func (i *lbInvocation) GetServiceWithLoadBalancerStatus(name, namespace string) 
 		}
 	})
 	if err != nil {
-		return nil, errors.Errorf("failed to get Status.LoadBalancer.Ingress for service %s/%s", name, namespace)
+		return nil, errors.Errorf("failed to get Status.Cluster.Ingress for service %s/%s", name, namespace)
 	}
 	return svc, nil
 }

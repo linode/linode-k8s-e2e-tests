@@ -23,40 +23,40 @@ var _ = Describe("CloudControllerManager", func() {
 	})
 
 	var createFrontendPodWithLabel = func(pod string, labels map[string]string) {
-		p := f.LoadBalancer.GetFrontendPodObject(pod, labels)
-		err = f.LoadBalancer.CreatePod(p)
+		p := f.Cluster.GetFrontendPodObject(pod, labels)
+		err = f.Cluster.CreatePod(p)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var createBackendPodWithLabel = func(pod string, labels map[string]string) {
-		p := f.LoadBalancer.GetBackendPodObject(pod, labels)
-		err = f.LoadBalancer.CreatePod(p)
+		p := f.Cluster.GetBackendPodObject(pod, labels)
+		err = f.Cluster.CreatePod(p)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var createServiceWithSelector = func(serviceName string, selector map[string]string, isFrontend bool) {
-		err = f.LoadBalancer.CreateService(serviceName, selector, isFrontend)
+		err = f.Cluster.CreateService(serviceName, selector, isFrontend)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var createNetworkPolicy = func(name string, labels map[string]string) {
-		np := f.LoadBalancer.GetNetworkPolicyObject(name, labels)
-		err = f.LoadBalancer.CreateNetworkPolicy(np)
+		np := f.Cluster.GetNetworkPolicyObject(name, labels)
+		err = f.Cluster.CreateNetworkPolicy(np)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var deletePods = func(pod string) {
-		err = f.LoadBalancer.DeletePod(pod)
+		err = f.Cluster.DeletePod(pod)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var deleteService = func(name string) {
-		err = f.LoadBalancer.DeleteService(name)
+		err = f.Cluster.DeleteService(name)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var deleteNetworkPolicy = func(name string) {
-		err = f.LoadBalancer.DeleteNetworkPolicy(name)
+		err = f.Cluster.DeleteNetworkPolicy(name)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -94,7 +94,7 @@ var _ = Describe("CloudControllerManager", func() {
 					createServiceWithSelector(frontendSvcName, frontendLabels, true)
 
 					By("Retrieving Service Endpoints")
-					eps, err := f.LoadBalancer.GetHTTPEndpoints(frontendSvcName)
+					eps, err := f.Cluster.GetHTTPEndpoints(frontendSvcName)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(len(eps)).Should(BeNumerically(">=", 1))
 					serviceURL = eps[0]

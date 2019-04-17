@@ -43,13 +43,13 @@ func (f *Framework) Invoke() *Invocation {
 	}
 	return &Invocation{
 		rootInvocation: r,
-		LoadBalancer:   &lbInvocation{rootInvocation: r},
+		Cluster:        &k8sInvocation{rootInvocation: r},
 	}
 }
 
 type Invocation struct {
 	*rootInvocation
-	LoadBalancer *lbInvocation
+	Cluster *k8sInvocation
 }
 
 type rootInvocation struct {
@@ -57,6 +57,6 @@ type rootInvocation struct {
 	app string
 }
 
-type lbInvocation struct {
+type k8sInvocation struct {
 	*rootInvocation
 }

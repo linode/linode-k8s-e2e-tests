@@ -1,5 +1,5 @@
 package framework
 
-func (i *lbInvocation) GetHTTPEndpoints(name string) ([]string, error) {
+func (i *k8sInvocation) GetHTTPEndpoints(name string) ([]string, error) {
 	return i.getLoadBalancerURLs(name)
 }

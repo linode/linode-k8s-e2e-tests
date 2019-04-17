@@ -7,7 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-func (i *lbInvocation) GetFrontendPodObject(podName string, labels map[string]string) *core.Pod {
+func (i *k8sInvocation) GetFrontendPodObject(podName string, labels map[string]string) *core.Pod {
 	return &core.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      podName,
@@ -32,7 +32,7 @@ func (i *lbInvocation) GetFrontendPodObject(podName string, labels map[string]st
 	}
 }
 
-func (i *lbInvocation) GetBackendPodObject(podName string, labels map[string]string) *core.Pod {
+func (i *k8sInvocation) GetBackendPodObject(podName string, labels map[string]string) *core.Pod {
 	return &core.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      podName,
@@ -56,7 +56,7 @@ func (i *lbInvocation) GetBackendPodObject(podName string, labels map[string]str
 	}
 }
 
-func (i *lbInvocation) CreatePod(pod *core.Pod) error {
+func (i *k8sInvocation) CreatePod(pod *core.Pod) error {
 	pod, err := i.kubeClient.CoreV1().Pods(i.Namespace()).Create(pod)
 	if err != nil {
 		return err
@@ -65,15 +65,15 @@ func (i *lbInvocation) CreatePod(pod *core.Pod) error {
 
 }
 
-func (i *lbInvocation) DeletePod(name string) error {
+func (i *k8sInvocation) DeletePod(name string) error {
 	return i.kubeClient.CoreV1().Pods(i.Namespace()).Delete(name, deleteInForeground())
 }
 
-func (i *lbInvocation) GetPod(name, ns string) (*core.Pod, error) {
+func (i *k8sInvocation) GetPod(name, ns string) (*core.Pod, error) {
 	return i.kubeClient.CoreV1().Pods(ns).Get(name, metav1.GetOptions{})
 }
 
-func (i *lbInvocation) WaitForReady(meta metav1.ObjectMeta) error {
+func (i *k8sInvocation) WaitForReady(meta metav1.ObjectMeta) error {
 	return wait.PollImmediate(RetryInterval, RetryTimout, func() (bool, error) {
 		pod, err := i.kubeClient.CoreV1().Pods(i.Namespace()).Get(meta.Name, metav1.GetOptions{})
 		if pod == nil || err != nil {

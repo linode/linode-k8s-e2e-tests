@@ -1,1 +1,43 @@
-# linode-k8s-e2e-tests
+# Linode Kubernetes End-to-end (e2e) tests
+
+This repository contains e2e tests for Linode Kubernetes Engine (LKE)
+
+## How to run these tests
+
+Install the following packages (macOS examples)
+
+```
+brew install terraform
+brew install kubectl
+brew install hg
+brew install golang
+```
+
+Add the following environment variables to your shell rc
+
+```
+export LINODE_API_TOKEN=<your linode API token>
+
+export GOPATH=$HOME/go
+export PATH=$HOME/go/bin:$PATH
+export GO111MODULE=on 
+```
+
+If you need a Linode API token visit this page:
+https://cloud.linode.com/profile/tokens
+
+Then, `go get` this repo
+`go get github.com/linode/linode-k8s-e2e-tests`
+
+That may fail, if it does, navigate to the directory that was created and run `go mod tidy`:
+
+```
+cd ~/go/src/github.com/linode/linode-k8s-e2e-tests
+go mod tidy
+```
+
+Then, run the tests
+
+```
+make test
+```

@@ -36,6 +36,12 @@ cd ~/go/src/github.com/linode/linode-k8s-e2e-tests
 go mod tidy
 ```
 
+By default the tests use $HOME/.ssh/id\_rsa.pub as the public key used to provision the cluster, so it needs to be added to your agent.
+
+```
+ssh-add $HOME/.ssh/id_rsa
+```
+
 Then, run the tests
 
 ```

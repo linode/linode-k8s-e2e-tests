@@ -1,16 +1,25 @@
 export GO111MODULE=on
-IMG ?= linode/linode-cloud-controller-manager:latest
 
-imports: $(GOPATH)/bin/goimports
-	goimports -w test
+$(GOPATH)/bin/goimports:
+	GO111MODULE=off go get golang.org/x/tools/cmd/goimports
 
-.PHONY: test
+$(GOPATH)/bin/ginkgo:
+	GO111MODULE=off go get -u github.com/onsi/ginkgo/ginkgo
+
+vet:
+	go vet -composites=false ./
+
+fmt: vet $(GOPATH)/bin/goimports
+	# goimports runs a gofmt
+	goimports -w *.go
+
+.PHONY: testi[
 test: $(GOPATH)/bin/ginkgo
 	@if [ -z "${LINODE_API_TOKEN}" ]; then\
 		echo "Skipping Test, LINODE_API_TOKEN is not set";\
 	else \
 		go list -m; \
-		ginkgo -r --v --progress --trace --cover -- --v=3 --image=${IMG}; \
+		ginkgo -r --v --progress --trace --cover -- --v=3; \
 	fi
 
 install-terraform:
@@ -18,4 +27,3 @@ install-terraform:
 	wget https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip
 	unzip terraform_0.11.13_linux_amd64.zip
 	sudo mv terraform /usr/local/bin/
-

@@ -1,9 +1,6 @@
 package framework
 
-import "fmt"
-
 func CreateCluster(cluster string) error {
-	fmt.Printf(ApiToken, cluster, "<>")
 	return RunScript("create_cluster.sh", ApiToken, cluster)
 }
 

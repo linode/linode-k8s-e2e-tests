@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/appscode/go v0.0.0-20190411132050-50c98d5fbcdd
+	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -22,4 +23,5 @@ require (
 	k8s.io/api v0.0.0-20180904230853-4e7be11eab3f
 	k8s.io/apimachinery v0.0.0-20180621070125-103fd098999d
 	k8s.io/client-go v8.0.0+incompatible
+	kmodules.xyz/client-go v0.0.0-20190330080556-5dcc4cecf4c9
 )

@@ -34,8 +34,8 @@ var _ = Describe("CloudControllerManager", func() {
 		Expect(err).NotTo(HaveOccurred())
 	}
 
-	var createServiceWithSelector = func(serviceName string, selector map[string]string, isFrontend bool) {
-		err = f.Cluster.CreateService(serviceName, selector, isFrontend)
+	var createServiceWithSelector = func(serviceName string, selector map[string]string) {
+		err = f.Cluster.CreateService(serviceName, selector)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -70,7 +70,6 @@ var _ = Describe("CloudControllerManager", func() {
 					backendLabels     map[string]string
 					frontendSvcName   = "frontend-svc"
 					backendSvcName    = "hello"
-					serviceURL        string
 					networkPolicyName = "test-network-policy"
 				)
 
@@ -90,14 +89,8 @@ var _ = Describe("CloudControllerManager", func() {
 					createFrontendPodWithLabel(frontendPod, frontendLabels)
 
 					By("Creating Service")
-					createServiceWithSelector(backendSvcName, backendLabels, false)
-					createServiceWithSelector(frontendSvcName, frontendLabels, true)
-
-					By("Retrieving Service Endpoints")
-					eps, err := f.Cluster.GetHTTPEndpoints(frontendSvcName)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(len(eps)).Should(BeNumerically(">=", 1))
-					serviceURL = eps[0]
+					createServiceWithSelector(backendSvcName, backendLabels)
+					createServiceWithSelector(frontendSvcName, frontendLabels)
 				})
 
 				AfterEach(func() {
@@ -113,15 +106,19 @@ var _ = Describe("CloudControllerManager", func() {
 
 				It("shouldn't get response from the backend service after applying network policy", func() {
 					By("Waiting for Response from the Backend Service")
-					err = framework.WaitForHTTPResponse(serviceURL)
-					Expect(err).NotTo(HaveOccurred())
+					Eventually(func() bool {
+						ok, _ := f.GetResponseFromPod(frontendPod, true)
+						return ok
+					}).Should(BeTrue())
 
 					By("Applying NetworkPolicy")
 					createNetworkPolicy(networkPolicyName, backendLabels)
 
-					By("Checking Response form the Backend Service")
-					err = framework.WaitForHTTPResponse(serviceURL)
-					Expect(err).To(HaveOccurred())
+					By("Checking Response form the Backend Service after Applying NetworkPolicy")
+					Eventually(func() bool {
+						ok, _ := f.GetResponseFromPod(frontendPod, false)
+						return ok
+					}).Should(BeFalse())
 				})
 			})
 		})

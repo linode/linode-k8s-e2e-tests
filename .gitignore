@@ -12,3 +12,13 @@
 *.out
 *.xml
 .idea
+*.coverprofile
+
+# Terraform
+.terraform
+terraform.tfstate*
+*.tf
+
+# Kubernetes
+*.conf
+

@@ -6,7 +6,7 @@ set -o nounset
 
 terraform destroy -force
 
-rm main.tf
+rm cluster.tf
 
 if [ -d ".terraform" ]
 then
@@ -17,3 +17,4 @@ if [ -d "terraform.tfstate.d" ]
 then
     rm -rf terraform.tfstate.d
 fi
+

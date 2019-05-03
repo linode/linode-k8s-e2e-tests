@@ -1,6 +1,10 @@
 package framework
 
 import (
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -14,6 +18,7 @@ import (
 	"github.com/golang/glog"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 const (
@@ -73,4 +78,37 @@ func installCurl(config *rest.Config, pod *v1.Pod) error {
 
 func curlInPod(config *rest.Config, pod *v1.Pod) (string, error) {
 	return kmodules.ExecIntoPod(config, pod, kmodules.Command("curl", "http://hello", "-s", "-m", "10"))
+}
+
+func getHTTPResponse(link string) (bool, string, error) {
+	resp, err := http.Get(link)
+	if err != nil {
+		return false, "", err
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return false, "", err
+	}
+
+	return resp.StatusCode == 200, string(bodyBytes), nil
+}
+
+func WaitForHTTPResponse(link string) error {
+	return wait.PollImmediate(RetryInterval, RetryTimout, func() (bool, error) {
+		ok, resp, err := getHTTPResponse(link)
+		if err != nil {
+			return false, nil
+		}
+		if ok {
+			log.Println("Got response from " + link)
+			if strings.Contains(resp, "Hello world") {
+				return true, nil
+			}
+			return true, fmt.Errorf("the response didn't have Hello world post in it")
+		}
+
+		return false, nil
+	})
 }

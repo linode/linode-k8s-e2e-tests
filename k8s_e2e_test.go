@@ -1,7 +1,13 @@
 package e2e_test
 
 import (
+	"fmt"
+	"log"
+	"os"
+	"time"
+
 	"github.com/appscode-cloud/linode-k8s-e2e-tests/framework"
+	"github.com/codeskyblue/go-sh"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -9,9 +15,10 @@ import (
 
 var _ = Describe("CloudControllerManager", func() {
 	var (
-		err     error
-		f       *framework.Invocation
-		workers []string
+		err       error
+		f         *framework.Invocation
+		workers   []string
+		chartName = "test-chart"
 	)
 
 	BeforeEach(func() {
@@ -57,6 +64,39 @@ var _ = Describe("CloudControllerManager", func() {
 
 	var deleteNetworkPolicy = func(name string) {
 		err = f.Cluster.DeleteNetworkPolicy(name)
+		Expect(err).NotTo(HaveOccurred())
+	}
+
+	var helmInit = func() {
+		err := framework.RunScript("helm-init.sh", ClusterName)
+		Expect(err).NotTo(HaveOccurred())
+	}
+
+	var getCurrentKubeConfig = func() string {
+		wd, err := os.Getwd()
+		Expect(err).NotTo(HaveOccurred())
+		return wd + "/" + ClusterName + ".conf"
+	}
+
+	var installHelmChart = func() {
+		var out []byte
+
+		Eventually(func() error {
+			out, err = sh.Command("helm", "install", "stable/wordpress", "--name", chartName, "--kubeconfig", getCurrentKubeConfig()).Output()
+			return err
+		}).ShouldNot(HaveOccurred())
+
+		log.Println(string(out))
+	}
+
+	var deleteHelmChart = func() {
+		By("Deleting Wordpress")
+		out, err := sh.Command("helm", "delete", chartName, "--purge", "--kubeconfig", getCurrentKubeConfig()).Output()
+		log.Println(string(out))
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Resetting Helm")
+		err = framework.RunScript("helm-delete.sh", ClusterName)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -119,6 +159,38 @@ var _ = Describe("CloudControllerManager", func() {
 						ok, _ := f.GetResponseFromPod(frontendPod, false)
 						return ok
 					}).Should(BeFalse())
+				})
+			})
+		})
+	})
+
+	Describe("Test", func() {
+		Context("Deploying", func() {
+			Context("a Complex Helm Chart", func() {
+				BeforeEach(func() {
+					By("Initializing Helm & Tiller")
+					helmInit()
+
+					By("Installing Wordpress from Helm Chart")
+					installHelmChart()
+				})
+
+				AfterEach(func() {
+					By("Deleting Wordpress Helm Chart")
+					deleteHelmChart()
+				})
+
+				It("should successfully deploy Wordpress helm chart and check its stateful & stateless component", func() {
+					By("Getting Wordpress URL")
+					url, err := f.Cluster.GetHTTPEndpoints(chartName + "-wordpress")
+					Expect(err).NotTo(HaveOccurred())
+
+					time.Sleep(2 * time.Minute)
+					fmt.Println(url[0])
+
+					By("Checking the Wordpress URL")
+					err = framework.WaitForHTTPResponse(url[0])
+					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 		})

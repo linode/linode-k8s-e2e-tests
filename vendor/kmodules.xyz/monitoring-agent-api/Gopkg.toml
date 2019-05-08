@@ -1,0 +1,58 @@
+# Gopkg.toml example
+#
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# for detailed Gopkg.toml documentation.
+#
+# required = ["github.com/user/thing/cmd/thing"]
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+#
+# [[constraint]]
+#   name = "github.com/user/project"
+#   version = "1.0.0"
+#
+# [[constraint]]
+#   name = "github.com/user/project2"
+#   branch = "dev"
+#   source = "github.com/myfork/project2"
+#
+# [[override]]
+#  name = "github.com/x/y"
+#  version = "2.4.0"
+
+
+[[override]]
+  name = "github.com/coreos/prometheus-operator"
+  version = "=v0.29.0"
+
+[[override]]
+  name = "k8s.io/api"
+  version = "kubernetes-1.13.0"
+
+[[override]]
+  name = "k8s.io/apimachinery"
+  branch = "ac-1.13.0"
+  source = "github.com/kmodules/apimachinery"
+
+[[override]]
+  name = "k8s.io/apiextensions-apiserver"
+  version = "kubernetes-1.13.0"
+
+[[override]]
+  name = "k8s.io/client-go"
+  version = "=v10.0.0"
+
+[[override]]
+  name = "k8s.io/kubernetes"
+  version = "=v1.13.0"
+
+[[override]]
+  name = "kmodules.xyz/client-go"
+  branch = "release-10.0"
+
+[[override]]
+  name = "k8s.io/kube-openapi"
+  revision = "c59034cc13d587f5ef4e85ca0ade0c1866ae8e1d"
+
+[prune]
+  unused-packages = true
+  go-tests = true

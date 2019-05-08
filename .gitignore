@@ -22,3 +22,7 @@ terraform.tfstate*
 # Kubernetes
 *.conf
 
+# KubeDB
+*.kubedb.com.yaml
+onessl
+

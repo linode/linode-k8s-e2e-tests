@@ -2,13 +2,18 @@ package framework
 
 import (
 	"github.com/appscode/go/crypto/rand"
+	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
 var (
-	Image    = "linode/linode-cloud-controller-manager:latest"
-	ApiToken = ""
+	Image          = "linode/linode-cloud-controller-manager:latest"
+	ApiToken       = ""
+	DockerRegistry = "kubedbci"
+	DBCatalogName  = "9.6-v2"
+	DBVersion      = "9.6-v3"
+	StorageClass   = "linode-block-storage"
 )
 
 const (
@@ -19,6 +24,7 @@ const (
 type Framework struct {
 	restConfig *rest.Config
 	kubeClient kubernetes.Interface
+	extClient  cs.Interface
 	namespace  string
 	name       string
 }
@@ -26,20 +32,21 @@ type Framework struct {
 func New(
 	restConfig *rest.Config,
 	kubeClient kubernetes.Interface,
+	extClient cs.Interface,
 ) *Framework {
 	return &Framework{
 		restConfig: restConfig,
 		kubeClient: kubeClient,
-
-		name:      "cloud-controller-manager",
-		namespace: rand.WithUniqSuffix("ccm"),
+		extClient:  extClient,
+		name:       "lke-test",
+		namespace:  rand.WithUniqSuffix("lke"),
 	}
 }
 
 func (f *Framework) Invoke() *Invocation {
 	r := &rootInvocation{
 		Framework: f,
-		app:       rand.WithUniqSuffix("csi-driver-e2e"),
+		app:       rand.WithUniqSuffix("e2e-test"),
 	}
 	return &Invocation{
 		rootInvocation: r,

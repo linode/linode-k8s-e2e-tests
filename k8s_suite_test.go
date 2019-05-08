@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/appscode-cloud/linode-k8s-e2e-tests/framework"
 	"github.com/appscode/go/crypto/rand"
+	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
 	"github.com/onsi/ginkgo/reporters"
+	"github.com/tamalsaha/linode-k8s-e2e-tests/framework"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
@@ -46,7 +47,6 @@ func TestE2e(t *testing.T) {
 
 	junitReporter := reporters.NewJUnitReporter("junit.xml")
 	RunSpecsWithDefaultAndCustomReporters(t, "e2e Suite", []Reporter{junitReporter})
-
 }
 
 var _ = BeforeSuite(func() {
@@ -65,9 +65,10 @@ var _ = BeforeSuite(func() {
 
 	// Clients
 	kubeClient := kubernetes.NewForConfigOrDie(config)
+	extClient := cs.NewForConfigOrDie(config)
 
 	// Framework
-	root = framework.New(config, kubeClient)
+	root = framework.New(config, kubeClient, extClient)
 
 	By("Using namespace " + root.Namespace())
 

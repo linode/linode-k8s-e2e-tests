@@ -56,6 +56,30 @@ func (i *k8sInvocation) GetBackendPodObject(podName string, labels map[string]st
 	}
 }
 
+func (i *k8sInvocation) GetPodObject(podName string, labels map[string]string) *core.Pod {
+	return &core.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      podName,
+			Namespace: i.Namespace(),
+			Labels:    labels,
+		},
+		Spec: core.PodSpec{
+			Containers: []core.Container{
+				{
+					Name:  "nginx",
+					Image: "nginx",
+					Ports: []core.ContainerPort{
+						{
+							Name:          "http",
+							ContainerPort: 80,
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func (i *k8sInvocation) CreatePod(pod *core.Pod) error {
 	pod, err := i.kubeClient.CoreV1().Pods(i.Namespace()).Create(pod)
 	if err != nil {

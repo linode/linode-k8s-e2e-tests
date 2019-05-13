@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/codeskyblue/go-sh"
@@ -44,8 +45,19 @@ var _ = Describe("CloudControllerManager", func() {
 		Expect(err).NotTo(HaveOccurred())
 	}
 
+	var createPodWithLabel = func(pod string, labels map[string]string) {
+		p := f.Cluster.GetPodObject(pod, labels)
+		err = f.Cluster.CreatePod(p)
+		Expect(err).NotTo(HaveOccurred())
+	}
+
 	var createServiceWithSelector = func(serviceName string, selector map[string]string) {
-		err = f.Cluster.CreateService(serviceName, selector)
+		err = f.Cluster.CreateService(serviceName, selector, nil)
+		Expect(err).NotTo(HaveOccurred())
+	}
+
+	var createService = func(serviceName string, selector, annotations map[string]string) {
+		err = f.Cluster.CreateService(serviceName, selector, annotations)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -313,6 +325,56 @@ var _ = Describe("CloudControllerManager", func() {
 					totalTime := endTime.Sub(startTime).Minutes()
 
 					log.Println("Total time needed to insert 1000 rows using Block Storage = ", totalTime, " mins")
+				})
+			})
+		})
+	})
+
+	Describe("Test", func() {
+		Context("Linode", func() {
+			Context("External DNS", func() {
+				var (
+					serviceName = "test-service"
+					podName     = "test-pod"
+					timeout     = 2 * time.Hour
+					labels      map[string]string
+					annotations map[string]string
+					domain      = "getappscode.com"
+				)
+
+				BeforeEach(func() {
+					labels = map[string]string{
+						"app": "external-dns",
+					}
+
+					annotations = map[string]string{
+						"external-dns.alpha.kubernetes.io/hostname": domain,
+					}
+
+					By("Creating Pod")
+					createPodWithLabel(podName, labels)
+
+					By("Creating Service with External DNS")
+					createService(serviceName, labels, annotations)
+				})
+
+				AfterEach(func() {
+					By("Deleting Pod")
+					deletePods(podName)
+
+					By("Deleting Service with External DNS")
+					deleteService(serviceName)
+				})
+
+				It("should successfully check the external dns", func() {
+					var output string
+					Eventually(func() bool {
+						ok, out, _ := framework.GetHTTPResponse("http://" + domain)
+						output = out
+						return ok
+					}, timeout).Should(BeTrue())
+
+					Expect(strings.Contains(output, "nginx")).Should(BeTrue())
 				})
 			})
 		})

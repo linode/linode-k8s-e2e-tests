@@ -80,7 +80,7 @@ func curlInPod(config *rest.Config, pod *v1.Pod) (string, error) {
 	return kmodules.ExecIntoPod(config, pod, kmodules.Command("curl", "http://hello", "-s", "-m", "10"))
 }
 
-func getHTTPResponse(link string) (bool, string, error) {
+func GetHTTPResponse(link string) (bool, string, error) {
 	resp, err := http.Get(link)
 	if err != nil {
 		return false, "", err
@@ -97,7 +97,7 @@ func getHTTPResponse(link string) (bool, string, error) {
 
 func WaitForHTTPResponse(link string) error {
 	return wait.PollImmediate(RetryInterval, RetryTimout, func() (bool, error) {
-		ok, resp, err := getHTTPResponse(link)
+		ok, resp, err := GetHTTPResponse(link)
 		if err != nil {
 			return false, nil
 		}

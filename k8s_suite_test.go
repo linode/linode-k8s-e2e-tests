@@ -68,7 +68,7 @@ var _ = BeforeSuite(func() {
 	extClient := cs.NewForConfigOrDie(config)
 
 	// Framework
-	root = framework.New(config, kubeClient, extClient)
+	root = framework.New(config, kubeClient, extClient, kubecofigFile)
 
 	By("Using namespace " + root.Namespace())
 

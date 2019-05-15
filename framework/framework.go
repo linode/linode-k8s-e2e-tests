@@ -12,7 +12,6 @@ var (
 	ApiToken       = ""
 	DockerRegistry = "kubedbci"
 	DBCatalogName  = "9.6-v2"
-	DBVersion      = "9.6-v3"
 	StorageClass   = "linode-block-storage"
 )
 
@@ -23,6 +22,7 @@ const (
 
 type Framework struct {
 	restConfig *rest.Config
+	kubeConfig string
 	kubeClient kubernetes.Interface
 	extClient  cs.Interface
 	namespace  string
@@ -33,10 +33,12 @@ func New(
 	restConfig *rest.Config,
 	kubeClient kubernetes.Interface,
 	extClient cs.Interface,
+	kubeConfig string,
 ) *Framework {
 	return &Framework{
 		restConfig: restConfig,
 		kubeClient: kubeClient,
+		kubeConfig: kubeConfig,
 		extClient:  extClient,
 		name:       "lke-test",
 		namespace:  rand.WithUniqSuffix("lke"),

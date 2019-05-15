@@ -112,3 +112,14 @@ func WaitForHTTPResponse(link string) error {
 		return false, nil
 	})
 }
+
+func (f Framework) ApplyManifest(manifestPath string) error {
+	args := []string{"apply", "--kubeconfig", f.kubeConfig, "-f", manifestPath}
+	cmd := exec.Command("kubectl", args...)
+	out, err := cmd.CombinedOutput()
+	fmt.Println(string(out))
+	if err != nil {
+		return err
+	}
+	return nil
+}

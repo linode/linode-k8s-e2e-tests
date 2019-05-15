@@ -1,0 +1,15 @@
+apiVersion: catalog.kubedb.com/v1alpha1
+kind: PostgresVersion
+metadata:
+  name: "9.6-v2"
+spec:
+  version: "9.6"
+  db:
+    image: "kubedb/postgres:9.6-v4"
+  exporter:
+    image: "kubedb/postgres_exporter:v0.4.7"
+  tools:
+    image: "kubedb/postgres-tools:9.6-v2"
+  podSecurityPolicies:
+    databasePolicyName: postgres-db
+    snapshotterPolicyName: postgres-snapshot

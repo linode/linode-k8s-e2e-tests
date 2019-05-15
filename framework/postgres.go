@@ -127,6 +127,6 @@ func (f *Framework) EventuallyInsertRow(meta metav1.ObjectMeta, dbName, userName
 			return true
 		},
 		time.Minute*10,
-		time.Second*10,
+		time.Second*1,
 	)
 }

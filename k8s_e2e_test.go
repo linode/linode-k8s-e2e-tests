@@ -110,12 +110,23 @@ var _ = Describe("CloudControllerManager", func() {
 	}
 
 	var installKubeDB = func() {
-		err := sh.Command("bash", "scripts/kubedb.sh", "--kubeconfig="+kubecofigFile).Run()
+		shSession := sh.NewSession()
+		shSession.Env = map[string]string{
+			"KUBECONFIG": kubecofigFile,
+		}
+		err := shSession.Command("curl", "-fsSL", "https://raw.githubusercontent.com/kubedb/cli/0.12.0/hack/deploy/kubedb.sh").Command("bash", "-s", "--", "--install-catalog=false").Run()
+		Expect(err).NotTo(HaveOccurred())
+
+		err = f.ApplyManifest("manifest/pg-version.yaml")
 		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var uninstallKubeDB = func() {
-		err := sh.Command("bash", "scripts/kubedb.sh", "--uninstall", "--purge", "--kubeconfig="+kubecofigFile).Run()
+		shSession := sh.NewSession()
+		shSession.Env = map[string]string{
+			"KUBECONFIG": kubecofigFile,
+		}
+		err := shSession.Command("curl", "-fsSL", "https://raw.githubusercontent.com/kubedb/cli/0.12.0/hack/deploy/kubedb.sh").Command("bash", "-s", "--", "--uninstall").Run()
 		Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -299,7 +310,7 @@ var _ = Describe("CloudControllerManager", func() {
 					By("Creating Postgres")
 					createAndWaitForRunning()
 
-					By("Checking the Time needed to perform 100 insert")
+					By("Checking the Time needed to perform 1000 insert")
 					startTime := time.Now()
 
 					f.EventuallyInsertRow(postgres.ObjectMeta, dbName, dbUser, 1000).Should(BeTrue())

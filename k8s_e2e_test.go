@@ -79,7 +79,7 @@ var _ = Describe("CloudControllerManager", func() {
 	}
 
 	var helmInit = func() {
-		err := framework.RunScript("helm-init.sh", ClusterName)
+		err := framework.RunScript("helm-init.sh", kubeconfigFile)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -87,7 +87,7 @@ var _ = Describe("CloudControllerManager", func() {
 		var out []byte
 
 		Eventually(func() error {
-			out, err = sh.Command("helm", "install", "stable/wordpress", "--name", chartName, "--kubeconfig", kubecofigFile).Output()
+			out, err = sh.Command("helm", "install", "stable/wordpress", "--name", chartName, "--kubeconfig", kubeconfigFile).Output()
 			return err
 		}).ShouldNot(HaveOccurred())
 
@@ -96,7 +96,7 @@ var _ = Describe("CloudControllerManager", func() {
 
 	var deleteHelmChart = func() {
 		By("Deleting Wordpress")
-		out, err := sh.Command("helm", "delete", chartName, "--purge", "--kubeconfig", kubecofigFile).Output()
+		out, err := sh.Command("helm", "delete", chartName, "--purge", "--kubeconfig", kubeconfigFile).Output()
 		log.Println(string(out))
 		Expect(err).NotTo(HaveOccurred())
 

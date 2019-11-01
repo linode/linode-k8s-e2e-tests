@@ -20,7 +20,7 @@ import (
 
 var (
 	useExisting   = false
-	kubecofigFile = filepath.Join(homedir.HomeDir(), ".kube/config")
+	kubeconfigFile = filepath.Join(homedir.HomeDir(), ".kube/config")
 	ClusterName string
 )
 
@@ -29,7 +29,7 @@ func init() {
 	flag.StringVar(&framework.ApiToken, "api-token", os.Getenv("LINODE_API_TOKEN"), "linode api token")
 
 	flag.BoolVar(&useExisting, "use-existing", useExisting, "Use existing kubernetes cluster")
-	flag.StringVar(&kubecofigFile, "kubeconfig", kubecofigFile, "To use existing cluster provide kubeconfig file")
+	flag.StringVar(&kubeconfigFile, "kubeconfig", kubeconfigFile, "To use existing cluster provide kubeconfig file")
 
 	var errRandom error
 
@@ -62,18 +62,18 @@ var _ = BeforeSuite(func() {
 		Expect(err).NotTo(HaveOccurred())
 		dir, err := os.Getwd()
 		Expect(err).NotTo(HaveOccurred())
-		kubecofigFile = filepath.Join(dir, ClusterName+".conf")
+		kubeconfigFile = filepath.Join(dir, ClusterName+".conf")
 	}
 
-	By("Using kubeconfig from " + kubecofigFile)
-	config, err := clientcmd.BuildConfigFromFlags("", kubecofigFile)
+	By("Using kubeconfig from " + kubeconfigFile)
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigFile)
 	Expect(err).NotTo(HaveOccurred())
 
 	// Clients
 	kubeClient := kubernetes.NewForConfigOrDie(config)
 
 	// Framework
-	root, err = framework.New(config, kubeClient, kubecofigFile)
+	root, err = framework.New(config, kubeClient, kubeconfigFile)
 	Expect(err).NotTo(HaveOccurred())
 
 	By("Using namespace " + root.Namespace())

@@ -104,7 +104,7 @@ var _ = Describe("CloudControllerManager", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Resetting Helm")
-		err = framework.RunScript("helm-delete.sh", ClusterName)
+		err = framework.RunScript("helm-delete.sh", kubeconfigFile)
 		Expect(err).NotTo(HaveOccurred())
 	}
 

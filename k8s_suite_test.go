@@ -7,10 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/appscode/go/crypto/rand"
-	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
 	"github.com/onsi/ginkgo/reporters"
-	"github.com/tamalsaha/linode-k8s-e2e-tests/framework"
+	"github.com/linode/linode-k8s-e2e-tests/framework"
+	"github.com/linode/linode-k8s-e2e-tests/rand"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
@@ -22,7 +21,7 @@ import (
 var (
 	useExisting   = false
 	kubecofigFile = filepath.Join(homedir.HomeDir(), ".kube/config")
-	ClusterName   = rand.WithUniqSuffix("ccm-linode")
+	ClusterName string
 )
 
 func init() {
@@ -31,6 +30,13 @@ func init() {
 
 	flag.BoolVar(&useExisting, "use-existing", useExisting, "Use existing kubernetes cluster")
 	flag.StringVar(&kubecofigFile, "kubeconfig", kubecofigFile, "To use existing cluster provide kubeconfig file")
+
+	var errRandom error
+
+	ClusterName, errRandom = rand.WithRandomSuffix("ccm-linode")
+	if errRandom != nil {
+		panic(errRandom)
+	}
 }
 
 const (
@@ -65,10 +71,10 @@ var _ = BeforeSuite(func() {
 
 	// Clients
 	kubeClient := kubernetes.NewForConfigOrDie(config)
-	extClient := cs.NewForConfigOrDie(config)
 
 	// Framework
-	root = framework.New(config, kubeClient, extClient, kubecofigFile)
+	root, err = framework.New(config, kubeClient, kubecofigFile)
+	Expect(err).NotTo(HaveOccurred())
 
 	By("Using namespace " + root.Namespace())
 

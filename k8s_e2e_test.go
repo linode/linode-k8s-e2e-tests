@@ -7,8 +7,7 @@ import (
 	"time"
 
 	"github.com/codeskyblue/go-sh"
-	apikubedb "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	"github.com/tamalsaha/linode-k8s-e2e-tests/framework"
+	"github.com/linode/linode-k8s-e2e-tests/framework"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,14 +19,11 @@ var _ = Describe("CloudControllerManager", func() {
 		f          *framework.Invocation
 		workers    []string
 		chartName  = "test-chart"
-		postgres   *apikubedb.Postgres
-		dbName     = "postgres"
-		dbUser     = "postgres"
-		totalTable int
 	)
 
 	BeforeEach(func() {
-		f = root.Invoke()
+		f, err = root.Invoke()
+		Expect(err).NotTo(HaveOccurred())
 		workers, err = f.GetNodeList()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(len(workers)).Should(BeNumerically(">=", 2))
@@ -107,52 +103,6 @@ var _ = Describe("CloudControllerManager", func() {
 		By("Resetting Helm")
 		err = framework.RunScript("helm-delete.sh", ClusterName)
 		Expect(err).NotTo(HaveOccurred())
-	}
-
-	var installKubeDB = func() {
-		shSession := sh.NewSession()
-		shSession.Env = map[string]string{
-			"KUBECONFIG": kubecofigFile,
-		}
-		err := shSession.Command("curl", "-fsSL", "https://raw.githubusercontent.com/kubedb/cli/0.12.0/hack/deploy/kubedb.sh").Command("bash", "-s", "--", "--install-catalog=false").Run()
-		Expect(err).NotTo(HaveOccurred())
-
-		err = f.ApplyManifest("manifest/pg-version.yaml")
-		Expect(err).NotTo(HaveOccurred())
-	}
-
-	var uninstallKubeDB = func() {
-		shSession := sh.NewSession()
-		shSession.Env = map[string]string{
-			"KUBECONFIG": kubecofigFile,
-		}
-		err := shSession.Command("curl", "-fsSL", "https://raw.githubusercontent.com/kubedb/cli/0.12.0/hack/deploy/kubedb.sh").Command("bash", "-s", "--", "--uninstall").Run()
-		Expect(err).NotTo(HaveOccurred())
-	}
-
-	var createAndWaitForRunning = func() {
-		By("Creating Postgres: " + postgres.Name)
-		err = f.CreatePostgres(postgres)
-		Expect(err).NotTo(HaveOccurred())
-
-		By("Wait for Running postgres")
-		f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
-
-		By("Waiting for database to be ready")
-		f.EventuallyPingDatabase(
-			postgres.ObjectMeta, f.GetPrimaryPodName(postgres.ObjectMeta), dbName, dbUser).
-			Should(BeTrue())
-	}
-
-	var checkDataAcrossReplication = func() {
-		By("Checking Table")
-		f.EventuallyCountTableFromPrimary(postgres.ObjectMeta, dbName, dbUser).
-			Should(Equal(totalTable))
-
-		By("Checking no read/write connection")
-		f.EventuallyPingDatabase(
-			postgres.ObjectMeta, f.GetArbitraryStandbyPodName(postgres.ObjectMeta), dbName, dbUser).
-			Should(BeFalse())
 	}
 
 	Describe("Test", func() {
@@ -246,96 +196,6 @@ var _ = Describe("CloudControllerManager", func() {
 					By("Checking the Wordpress URL")
 					err = framework.WaitForHTTPResponse(url[0])
 					Expect(err).NotTo(HaveOccurred())
-				})
-			})
-		})
-	})
-
-	Describe("Test", func() {
-		Context("Deploying", func() {
-			Context("a RDBMS Controller", func() {
-				BeforeEach(func() {
-					By("Initializing KubeDB")
-					installKubeDB()
-				})
-
-				AfterEach(func() {
-					By("Deleting Postgres crd")
-					err = f.DeletePostgres(postgres.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Uninstalling KubeDB")
-					uninstallKubeDB()
-				})
-
-				It("should successfully test the KubeDB controller", func() {
-					postgres = f.Postgres(false)
-
-					By("Creating Postgres")
-					createAndWaitForRunning()
-
-					By("Checking Streaming")
-					f.EventuallyStreamingReplication(
-						postgres.ObjectMeta, f.GetPrimaryPodName(postgres.ObjectMeta), dbName, dbUser).
-						Should(Equal(int(*postgres.Spec.Replicas) - 1))
-
-					By("Creating Schema")
-					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).
-						Should(BeTrue())
-
-					By("Creating Table")
-					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).
-						Should(BeTrue())
-					totalTable += 3
-
-					checkDataAcrossReplication()
-
-					By("Deleting a pod")
-					err = f.DeletePostgresPod(postgres.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Checking if the deleted node is created again")
-					Eventually(func() bool {
-						pod, err := f.CheckPostgresPod(postgres.ObjectMeta)
-						if err != nil {
-							return false
-						}
-						return pod.Status.Phase == "Running"
-					}).Should(BeTrue())
-				})
-
-				It("should successfully check insert time using Local Storage", func() {
-					postgres = f.Postgres(true)
-
-					By("Creating Postgres")
-					createAndWaitForRunning()
-
-					By("Checking the Time needed to perform 1000 insert")
-					startTime := time.Now()
-
-					f.EventuallyInsertRow(postgres.ObjectMeta, dbName, dbUser, 1000).Should(BeTrue())
-
-					endTime := time.Now()
-					totalTime := endTime.Sub(startTime).Minutes()
-
-					log.Println("Total time needed to insert 1000 rows using Local Storage = ", totalTime, " mins")
-				})
-
-				It("should successfully check insert time using Block Storage", func() {
-					postgres = f.Postgres(false)
-
-					By("Creating Postgres")
-					createAndWaitForRunning()
-
-					By("Checking the Time needed to perform 1000 insert")
-					startTime := time.Now()
-
-					f.EventuallyInsertRow(postgres.ObjectMeta, dbName, dbUser, 1000).Should(BeTrue())
-
-					endTime := time.Now()
-					totalTime := endTime.Sub(startTime).Minutes()
-
-					log.Println("Total time needed to insert 1000 rows using Block Storage = ", totalTime, " mins")
 				})
 			})
 		})

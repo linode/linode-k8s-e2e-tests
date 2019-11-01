@@ -1,8 +1,7 @@
 package framework
 
 import (
-	"github.com/appscode/go/crypto/rand"
-	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
+	"github.com/linode/linode-k8s-e2e-tests/rand"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -24,7 +23,6 @@ type Framework struct {
 	restConfig *rest.Config
 	kubeConfig string
 	kubeClient kubernetes.Interface
-	extClient  cs.Interface
 	namespace  string
 	name       string
 }
@@ -32,28 +30,41 @@ type Framework struct {
 func New(
 	restConfig *rest.Config,
 	kubeClient kubernetes.Interface,
-	extClient cs.Interface,
 	kubeConfig string,
-) *Framework {
-	return &Framework{
+) (*Framework, error) {
+	suffix, errSuffix := rand.WithRandomSuffix("lke")
+	if errSuffix != nil {
+		return nil, errSuffix
+	}
+
+	out := &Framework{
 		restConfig: restConfig,
 		kubeClient: kubeClient,
 		kubeConfig: kubeConfig,
-		extClient:  extClient,
 		name:       "lke-test",
-		namespace:  rand.WithUniqSuffix("lke"),
+		namespace:  suffix,
 	}
+
+	return out, nil
 }
 
-func (f *Framework) Invoke() *Invocation {
+func (f *Framework) Invoke() (*Invocation, error) {
+	suffix, errSuffix := rand.WithRandomSuffix("e2e-test")
+	if errSuffix != nil {
+		return nil, errSuffix
+	}
+
 	r := &rootInvocation{
 		Framework: f,
-		app:       rand.WithUniqSuffix("e2e-test"),
+		app:       suffix,
 	}
-	return &Invocation{
+
+	out := &Invocation{
 		rootInvocation: r,
 		Cluster:        &k8sInvocation{rootInvocation: r},
 	}
+
+	return out, nil
 }
 
 type Invocation struct {

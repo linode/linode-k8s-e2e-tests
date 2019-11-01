@@ -8,6 +8,7 @@ import (
 
 	"github.com/codeskyblue/go-sh"
 	"github.com/linode/linode-k8s-e2e-tests/framework"
+	"github.com/linode/linode-k8s-e2e-tests/rand"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -18,10 +19,12 @@ var _ = Describe("CloudControllerManager", func() {
 		err        error
 		f          *framework.Invocation
 		workers    []string
-		chartName  = "test-chart"
+		chartName  string
 	)
 
 	BeforeEach(func() {
+		chartName, err = rand.WithRandomSuffix("wordpress-")
+		Expect(err).NotTo(HaveOccurred())
 		f, err = root.Invoke()
 		Expect(err).NotTo(HaveOccurred())
 		workers, err = f.GetNodeList()
@@ -187,7 +190,7 @@ var _ = Describe("CloudControllerManager", func() {
 
 				It("should successfully deploy Wordpress helm chart and check its stateful & stateless component", func() {
 					By("Getting Wordpress URL")
-					url, err := f.Cluster.GetHTTPEndpoints(chartName + "-wordpress")
+					url, err := f.Cluster.GetHTTPEndpoints(chartName)
 					Expect(err).NotTo(HaveOccurred())
 
 					time.Sleep(2 * time.Minute)

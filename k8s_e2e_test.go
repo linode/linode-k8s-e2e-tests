@@ -213,16 +213,17 @@ var _ = Describe("CloudControllerManager", func() {
 					timeout     = 2 * time.Hour
 					labels      map[string]string
 					annotations map[string]string
-					domain      = "getappscode.com"
 				)
 
 				BeforeEach(func() {
+					Expect(externalDomain).NotTo(Equal(""))
+
 					labels = map[string]string{
 						"app": "external-dns",
 					}
 
 					annotations = map[string]string{
-						"external-dns.alpha.kubernetes.io/hostname": domain,
+						"external-dns.alpha.kubernetes.io/hostname": externalDomain,
 					}
 
 					By("Creating Pod")
@@ -243,7 +244,7 @@ var _ = Describe("CloudControllerManager", func() {
 				It("should successfully check the external dns", func() {
 					var output string
 					Eventually(func() bool {
-						ok, out, _ := framework.GetHTTPResponse("http://" + domain)
+						ok, out, _ := framework.GetHTTPResponse("http://" + externalDomain)
 						output = out
 						return ok
 					}, timeout).Should(BeTrue())

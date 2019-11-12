@@ -19,6 +19,7 @@ import (
 )
 
 var (
+	externalDomain string
 	useExisting    = false
 	kubeconfigFile = filepath.Join(homedir.HomeDir(), ".kube/config")
 	ClusterName    string
@@ -30,6 +31,7 @@ func init() {
 
 	flag.BoolVar(&useExisting, "use-existing", useExisting, "Use existing kubernetes cluster")
 	flag.StringVar(&kubeconfigFile, "kubeconfig", kubeconfigFile, "To use existing cluster provide kubeconfig file")
+	flag.StringVar(&externalDomain, "external-domain", "", "External domain for DNS tests (required when running DNS tests)")
 
 	var errRandom error
 

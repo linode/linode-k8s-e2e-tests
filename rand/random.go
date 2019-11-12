@@ -16,7 +16,7 @@ func WithRandomSuffix(prefix string) (string, error) {
 
 	suffix := hex.EncodeToString(suffixBytes)
 
-	bucketName := fmt.Sprintf("%s%s", prefix, suffix)
+	suffixedString := fmt.Sprintf("%s%s", prefix, suffix)
 
-	return bucketName, nil
+	return suffixedString, nil
 }

@@ -7,10 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/appscode/go/crypto/rand"
-	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
+	"github.com/linode/linode-k8s-e2e-tests/framework"
+	"github.com/linode/linode-k8s-e2e-tests/rand"
 	"github.com/onsi/ginkgo/reporters"
-	"github.com/tamalsaha/linode-k8s-e2e-tests/framework"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
@@ -20,9 +19,10 @@ import (
 )
 
 var (
-	useExisting   = false
-	kubecofigFile = filepath.Join(homedir.HomeDir(), ".kube/config")
-	ClusterName   = rand.WithUniqSuffix("ccm-linode")
+	externalDomain string
+	useExisting    = false
+	kubeconfigFile = filepath.Join(homedir.HomeDir(), ".kube/config")
+	ClusterName    string
 )
 
 func init() {
@@ -30,7 +30,15 @@ func init() {
 	flag.StringVar(&framework.ApiToken, "api-token", os.Getenv("LINODE_API_TOKEN"), "linode api token")
 
 	flag.BoolVar(&useExisting, "use-existing", useExisting, "Use existing kubernetes cluster")
-	flag.StringVar(&kubecofigFile, "kubeconfig", kubecofigFile, "To use existing cluster provide kubeconfig file")
+	flag.StringVar(&kubeconfigFile, "kubeconfig", kubeconfigFile, "To use existing cluster provide kubeconfig file")
+	flag.StringVar(&externalDomain, "external-domain", "", "External domain for DNS tests (required when running DNS tests)")
+
+	var errRandom error
+
+	ClusterName, errRandom = rand.WithRandomSuffix("ccm-linode")
+	if errRandom != nil {
+		panic(errRandom)
+	}
 }
 
 const (
@@ -56,19 +64,19 @@ var _ = BeforeSuite(func() {
 		Expect(err).NotTo(HaveOccurred())
 		dir, err := os.Getwd()
 		Expect(err).NotTo(HaveOccurred())
-		kubecofigFile = filepath.Join(dir, ClusterName+".conf")
+		kubeconfigFile = filepath.Join(dir, ClusterName+".conf")
 	}
 
-	By("Using kubeconfig from " + kubecofigFile)
-	config, err := clientcmd.BuildConfigFromFlags("", kubecofigFile)
+	By("Using kubeconfig from " + kubeconfigFile)
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigFile)
 	Expect(err).NotTo(HaveOccurred())
 
 	// Clients
 	kubeClient := kubernetes.NewForConfigOrDie(config)
-	extClient := cs.NewForConfigOrDie(config)
 
 	// Framework
-	root = framework.New(config, kubeClient, extClient, kubecofigFile)
+	root, err = framework.New(config, kubeClient, kubeconfigFile)
+	Expect(err).NotTo(HaveOccurred())
 
 	By("Using namespace " + root.Namespace())
 

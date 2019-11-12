@@ -16,10 +16,10 @@ import (
 
 var _ = Describe("CloudControllerManager", func() {
 	var (
-		err        error
-		f          *framework.Invocation
-		workers    []string
-		chartName  string
+		err       error
+		f         *framework.Invocation
+		workers   []string
+		chartName string
 	)
 
 	BeforeEach(func() {

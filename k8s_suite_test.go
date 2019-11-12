@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/onsi/ginkgo/reporters"
 	"github.com/linode/linode-k8s-e2e-tests/framework"
 	"github.com/linode/linode-k8s-e2e-tests/rand"
+	"github.com/onsi/ginkgo/reporters"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
@@ -19,9 +19,9 @@ import (
 )
 
 var (
-	useExisting   = false
+	useExisting    = false
 	kubeconfigFile = filepath.Join(homedir.HomeDir(), ".kube/config")
-	ClusterName string
+	ClusterName    string
 )
 
 func init() {

@@ -90,7 +90,7 @@ var _ = Describe("CloudControllerManager", func() {
 		var out []byte
 
 		Eventually(func() error {
-			out, err = sh.Command("helm", "install", "stable/wordpress", "--name", chartName, "--kubeconfig", kubeconfigFile).Output()
+			out, err = sh.Command("helm", "install", chartName, "bitnami/wordpress", "--kubeconfig", kubeconfigFile).Output()
 			return err
 		}).ShouldNot(HaveOccurred())
 
@@ -176,7 +176,7 @@ var _ = Describe("CloudControllerManager", func() {
 		Context("Deploying", func() {
 			Context("a Complex Helm Chart", func() {
 				BeforeEach(func() {
-					By("Initializing Helm & Tiller")
+					By("Initializing Helm")
 					helmInit()
 
 					By("Installing Wordpress from Helm Chart")

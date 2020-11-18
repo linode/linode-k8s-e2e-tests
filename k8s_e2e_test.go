@@ -99,7 +99,7 @@ var _ = Describe("CloudControllerManager", func() {
 
 	var deleteHelmChart = func() {
 		By("Deleting Wordpress")
-		out, err := sh.Command("helm", "delete", chartName, "--purge", "--kubeconfig", kubeconfigFile).Output()
+		out, err := sh.Command("helm", "delete", chartName, "--kubeconfig", kubeconfigFile).Output()
 		log.Println(string(out))
 		Expect(err).NotTo(HaveOccurred())
 

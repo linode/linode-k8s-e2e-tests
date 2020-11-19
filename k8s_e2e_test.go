@@ -102,10 +102,6 @@ var _ = Describe("CloudControllerManager", func() {
 		out, err := sh.Command("helm", "delete", chartName, "--kubeconfig", kubeconfigFile).Output()
 		log.Println(string(out))
 		Expect(err).NotTo(HaveOccurred())
-
-		By("Resetting Helm")
-		err = framework.RunScript("helm-delete.sh", kubeconfigFile)
-		Expect(err).NotTo(HaveOccurred())
 	}
 
 	Describe("Test", func() {

@@ -6,11 +6,11 @@ This repository contains e2e tests for Linode Kubernetes Engine (LKE)
 
 Install the following packages (macOS examples)
 
-```
-brew install terraform
+```shell
+brew install terraform # >= v1.0.0
+brew install golang # >= 1.17.0
 brew install kubectl
 brew install hg
-brew install golang
 ```
 
 Add the following environment variables to your shell rc

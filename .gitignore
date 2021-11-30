@@ -18,6 +18,7 @@
 .terraform
 terraform.tfstate*
 *.tf
+.terraform.lock.hcl
 
 # Kubernetes
 *.conf
@@ -25,4 +26,3 @@ terraform.tfstate*
 # KubeDB
 *.kubedb.com.yaml
 onessl
-

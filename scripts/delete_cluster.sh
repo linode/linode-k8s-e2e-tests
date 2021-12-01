@@ -4,7 +4,7 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-terraform destroy -force
+terraform destroy --auto-approve
 
 rm cluster.tf
 

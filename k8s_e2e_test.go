@@ -217,10 +217,14 @@ var _ = Describe("CloudControllerManager", func() {
 					deleteHelmChart(metricsServerName)
 				})
 
-				It("should successfully deploy Metrics Server helm chart and check it reports metrics, after 2 minutes", func() {
-					time.Sleep(2 * time.Minute)
-					_, err = f.Cluster.GetPodMetrics()
-					Expect(err).NotTo(HaveOccurred())
+				It("should successfully deploy Metrics Server helm chart and eventually reports metrics", func() {
+					Eventually(func() bool {
+						_, err = f.Cluster.GetPodMetrics()
+						if err != nil {
+							return false
+						}
+						return true
+					}, "2m", "30s").Should(BeTrue())
 				})
 			})
 		})

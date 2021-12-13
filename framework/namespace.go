@@ -1,6 +1,8 @@
 package framework
 
 import (
+	"context"
+
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
@@ -20,10 +22,10 @@ func (f *Framework) CreateNamespace() error {
 			Name: f.namespace,
 		},
 	}
-	_, err := f.kubeClient.CoreV1().Namespaces().Create(obj)
+	_, err := f.kubeClient.CoreV1().Namespaces().Create(context.TODO(), obj, metav1.CreateOptions{})
 	return err
 }
 
 func (f *Framework) DeleteNamespace() error {
-	return f.kubeClient.CoreV1().Namespaces().Delete(f.namespace, deleteInForeground())
+	return f.kubeClient.CoreV1().Namespaces().Delete(context.TODO(), f.namespace, metav1.DeleteOptions{})
 }

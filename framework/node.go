@@ -1,6 +1,8 @@
 package framework
 
 import (
+	"context"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -10,7 +12,7 @@ const (
 
 func (i *Invocation) GetNodeList() ([]string, error) {
 	workers := make([]string, 0)
-	nodes, err := i.kubeClient.CoreV1().Nodes().List(metav1.ListOptions{})
+	nodes, err := i.kubeClient.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}

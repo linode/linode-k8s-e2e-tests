@@ -16,6 +16,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	metricsclientset "k8s.io/metrics/pkg/client/clientset/versioned"
 )
 
 var (
@@ -73,9 +74,11 @@ var _ = BeforeSuite(func() {
 
 	// Clients
 	kubeClient := kubernetes.NewForConfigOrDie(config)
+	metricsClient, err := metricsclientset.NewForConfig(config)
+	Expect(err).NotTo(HaveOccurred())
 
 	// Framework
-	root, err = framework.New(config, kubeClient, kubeconfigFile)
+	root, err = framework.New(config, kubeClient, kubeconfigFile, metricsClient)
 	Expect(err).NotTo(HaveOccurred())
 
 	By("Using namespace " + root.Namespace())

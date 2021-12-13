@@ -1,6 +1,7 @@
 package framework
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -51,7 +52,7 @@ func deleteInForeground() *metav1.DeleteOptions {
 }
 
 func (f Framework) GetResponseFromPod(podName string, install bool) (bool, error) {
-	pods, err := f.kubeClient.CoreV1().Pods(f.Namespace()).Get(podName, metav1.GetOptions{})
+	pods, err := f.kubeClient.CoreV1().Pods(f.Namespace()).Get(context.TODO(), podName, metav1.GetOptions{})
 	if err != nil {
 		return false, err
 	}

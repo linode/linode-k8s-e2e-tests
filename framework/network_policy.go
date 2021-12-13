@@ -1,6 +1,8 @@
 package framework
 
 import (
+	"context"
+
 	v1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -34,11 +36,11 @@ func (i *k8sInvocation) GetNetworkPolicyObject(name string, labels map[string]st
 }
 
 func (i *k8sInvocation) CreateNetworkPolicy(np *v1.NetworkPolicy) error {
-	_, err := i.kubeClient.NetworkingV1().NetworkPolicies(i.Namespace()).Create(np)
+	_, err := i.kubeClient.NetworkingV1().NetworkPolicies(i.Namespace()).Create(context.TODO(), np, metav1.CreateOptions{})
 
 	return err
 }
 
 func (i *k8sInvocation) DeleteNetworkPolicy(name string) error {
-	return i.kubeClient.NetworkingV1().NetworkPolicies(i.Namespace()).Delete(name, nil)
+	return i.kubeClient.NetworkingV1().NetworkPolicies(i.Namespace()).Delete(context.TODO(), name, metav1.DeleteOptions{})
 }

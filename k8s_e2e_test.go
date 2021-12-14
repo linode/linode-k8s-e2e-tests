@@ -9,6 +9,7 @@ import (
 	"github.com/codeskyblue/go-sh"
 	"github.com/linode/linode-k8s-e2e-tests/framework"
 	"github.com/linode/linode-k8s-e2e-tests/rand"
+	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -204,6 +205,9 @@ var _ = Describe("CloudControllerManager", func() {
 				})
 			})
 			Context("a Metrics Server Helm Chart", func() {
+				var (
+					nodeMetrics *v1beta1.NodeMetricsList
+				)
 				BeforeEach(func() {
 					By("Initializing Helm")
 					helmInit()
@@ -223,6 +227,11 @@ var _ = Describe("CloudControllerManager", func() {
 						if err != nil {
 							return false
 						}
+						nodeMetrics, err = f.Cluster.GetNodeMetrics()
+						if err != nil {
+							return false
+						}
+						Expect(len(nodeMetrics.Items)).To(Equal(2))
 						return true
 					}, "2m", "30s").Should(BeTrue())
 				})

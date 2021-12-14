@@ -100,7 +100,7 @@ func (i *k8sInvocation) GetPodMetrics() (*v1beta1.PodMetricsList, error) {
 }
 
 func (i *k8sInvocation) DeletePod(name string) error {
-	return i.kubeClient.CoreV1().Pods(i.Namespace()).Delete(context.TODO(), name, metav1.DeleteOptions{})
+	return i.kubeClient.CoreV1().Pods(i.Namespace()).Delete(context.TODO(), name, *deleteInForeground())
 }
 
 func (i *k8sInvocation) GetPod(name, ns string) (*core.Pod, error) {

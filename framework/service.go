@@ -91,6 +91,6 @@ func (i *k8sInvocation) GetServiceWithLoadBalancerStatus(name, namespace string)
 }
 
 func (i *k8sInvocation) DeleteService(name string) error {
-	err := i.kubeClient.CoreV1().Services(i.Namespace()).Delete(context.TODO(), name, metav1.DeleteOptions{})
+	err := i.kubeClient.CoreV1().Services(i.Namespace()).Delete(context.TODO(), name, *deleteInForeground())
 	return err
 }

@@ -42,5 +42,5 @@ func (i *k8sInvocation) CreateNetworkPolicy(np *v1.NetworkPolicy) error {
 }
 
 func (i *k8sInvocation) DeleteNetworkPolicy(name string) error {
-	return i.kubeClient.NetworkingV1().NetworkPolicies(i.Namespace()).Delete(context.TODO(), name, metav1.DeleteOptions{})
+	return i.kubeClient.NetworkingV1().NetworkPolicies(i.Namespace()).Delete(context.TODO(), name, *deleteInForeground())
 }

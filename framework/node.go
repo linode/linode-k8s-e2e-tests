@@ -4,6 +4,7 @@ import (
 	"context"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 )
 
 const (
@@ -23,4 +24,12 @@ func (i *Invocation) GetNodeList() ([]string, error) {
 		}
 	}
 	return workers, nil
+}
+
+func (i *k8sInvocation) GetNodeMetrics() (*v1beta1.NodeMetricsList, error) {
+	metrics, err := i.metricsClient.MetricsV1beta1().NodeMetricses().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return metrics, nil
 }

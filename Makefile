@@ -23,12 +23,8 @@ test: $(GOPATH)/bin/ginkgo
 	fi
 
 test-existing: $(GOPATH)/bin/ginkgo
-	@if [ -z "${LINODE_API_TOKEN}" ]; then\
-		echo "Skipping Test, LINODE_API_TOKEN is not set";\
-	else \
-		go list -m; \
-		ginkgo -r --v --progress --trace --cover -- --use-existing --kubeconfig="${TEST_KUBECONFIG}" --v=3; \
-	fi
+	go list -m; \
+	ginkgo -r --v --progress --trace --cover -- --use-existing --kubeconfig="${TEST_KUBECONFIG}" --v=3; \
 
 install-terraform:
 	sudo apt-get install wget unzip

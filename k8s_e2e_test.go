@@ -231,7 +231,7 @@ var _ = Describe("CloudControllerManager", func() {
 						if err != nil {
 							return false
 						}
-						Expect(len(nodeMetrics.Items)).To(Equal(2))
+						Expect(len(nodeMetrics.Items)).To(BeNumerically(">", 0))
 						return true
 					}, "2m", "30s").Should(BeTrue())
 				})

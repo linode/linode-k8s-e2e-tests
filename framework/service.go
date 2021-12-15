@@ -1,6 +1,7 @@
 package framework
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"time"
@@ -13,7 +14,7 @@ import (
 )
 
 func (i *k8sInvocation) CreateService(serviceName string, selector, annotations map[string]string) error {
-	_, err := i.kubeClient.CoreV1().Services(i.Namespace()).Create(&core.Service{
+	_, err := i.kubeClient.CoreV1().Services(i.Namespace()).Create(context.TODO(), &core.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        serviceName,
 			Namespace:   i.Namespace(),
@@ -30,7 +31,7 @@ func (i *k8sInvocation) CreateService(serviceName string, selector, annotations 
 			Selector: selector,
 			Type:     core.ServiceTypeLoadBalancer,
 		},
-	})
+	}, metav1.CreateOptions{})
 
 	return err
 }
@@ -76,7 +77,7 @@ func (i *k8sInvocation) GetServiceWithLoadBalancerStatus(name, namespace string)
 		err error
 	)
 	err = wait.PollImmediate(2*time.Second, 20*time.Minute, func() (bool, error) {
-		svc, err = i.kubeClient.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
+		svc, err = i.kubeClient.CoreV1().Services(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil || len(svc.Status.LoadBalancer.Ingress) == 0 { // retry
 			return false, nil
 		} else {
@@ -90,6 +91,6 @@ func (i *k8sInvocation) GetServiceWithLoadBalancerStatus(name, namespace string)
 }
 
 func (i *k8sInvocation) DeleteService(name string) error {
-	err := i.kubeClient.CoreV1().Services(i.Namespace()).Delete(name, nil)
+	err := i.kubeClient.CoreV1().Services(i.Namespace()).Delete(context.TODO(), name, *deleteInForeground())
 	return err
 }

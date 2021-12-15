@@ -9,6 +9,7 @@ import (
 	"github.com/codeskyblue/go-sh"
 	"github.com/linode/linode-k8s-e2e-tests/framework"
 	"github.com/linode/linode-k8s-e2e-tests/rand"
+	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,14 +17,16 @@ import (
 
 var _ = Describe("CloudControllerManager", func() {
 	var (
-		err       error
-		f         *framework.Invocation
-		workers   []string
-		chartName string
+		err               error
+		f                 *framework.Invocation
+		workers           []string
+		wordpressName     string
+		metricsServerName string
 	)
 
 	BeforeEach(func() {
-		chartName, err = rand.WithRandomSuffix("wordpress-")
+		wordpressName, err = rand.WithRandomSuffix("wordpress-")
+		metricsServerName, err = rand.WithRandomSuffix("metrics-server-")
 		Expect(err).NotTo(HaveOccurred())
 		f, err = root.Invoke()
 		Expect(err).NotTo(HaveOccurred())
@@ -86,18 +89,22 @@ var _ = Describe("CloudControllerManager", func() {
 		Expect(err).NotTo(HaveOccurred())
 	}
 
-	var installHelmChart = func() {
+	var installHelmChart = func(chartName, repoName string) {
 		var out []byte
-
 		Eventually(func() error {
-			out, err = sh.Command("helm", "install", chartName, "bitnami/wordpress", "--kubeconfig", kubeconfigFile).Output()
-			return err
+			if chartName == metricsServerName {
+				out, err = sh.Command("helm", "install", chartName, repoName, "--set", "args={--kubelet-insecure-tls}", "--kubeconfig", kubeconfigFile).Output()
+				return err
+			} else {
+				out, err = sh.Command("helm", "install", chartName, repoName, "--kubeconfig", kubeconfigFile).Output()
+				return err
+			}
 		}).ShouldNot(HaveOccurred())
 
 		log.Println(string(out))
 	}
 
-	var deleteHelmChart = func() {
+	var deleteHelmChart = func(chartName string) {
 		By("Deleting Wordpress")
 		out, err := sh.Command("helm", "delete", chartName, "--kubeconfig", kubeconfigFile).Output()
 		log.Println(string(out))
@@ -176,17 +183,17 @@ var _ = Describe("CloudControllerManager", func() {
 					helmInit()
 
 					By("Installing Wordpress from Helm Chart")
-					installHelmChart()
+					installHelmChart(wordpressName, "bitnami/wordpress")
 				})
 
 				AfterEach(func() {
 					By("Deleting Wordpress Helm Chart")
-					deleteHelmChart()
+					deleteHelmChart(wordpressName)
 				})
 
 				It("should successfully deploy Wordpress helm chart and check its stateful & stateless component", func() {
 					By("Getting Wordpress URL")
-					url, err := f.Cluster.GetHTTPEndpoints(chartName)
+					url, err := f.Cluster.GetHTTPEndpoints(wordpressName)
 					Expect(err).NotTo(HaveOccurred())
 
 					time.Sleep(2 * time.Minute)
@@ -195,6 +202,38 @@ var _ = Describe("CloudControllerManager", func() {
 					By("Checking the Wordpress URL")
 					err = framework.WaitForHTTPResponse(url[0])
 					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+			Context("a Metrics Server Helm Chart", func() {
+				var (
+					nodeMetrics *v1beta1.NodeMetricsList
+				)
+				BeforeEach(func() {
+					By("Initializing Helm")
+					helmInit()
+
+					By("Installing Metrics Server from Helm Chart")
+					installHelmChart(metricsServerName, "metrics-server/metrics-server")
+				})
+
+				AfterEach(func() {
+					By("Deleting Metrics Server Helm Chart")
+					deleteHelmChart(metricsServerName)
+				})
+
+				It("should successfully deploy Metrics Server helm chart and eventually reports metrics", func() {
+					Eventually(func() bool {
+						_, err = f.Cluster.GetPodMetrics()
+						if err != nil {
+							return false
+						}
+						nodeMetrics, err = f.Cluster.GetNodeMetrics()
+						if err != nil {
+							return false
+						}
+						Expect(len(nodeMetrics.Items)).To(BeNumerically(">", 0))
+						return true
+					}, "2m", "30s").Should(BeTrue())
 				})
 			})
 		})

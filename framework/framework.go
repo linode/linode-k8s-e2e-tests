@@ -4,6 +4,7 @@ import (
 	"github.com/linode/linode-k8s-e2e-tests/rand"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	metricsclientset "k8s.io/metrics/pkg/client/clientset/versioned"
 )
 
 var (
@@ -20,17 +21,19 @@ const (
 )
 
 type Framework struct {
-	restConfig *rest.Config
-	kubeConfig string
-	kubeClient kubernetes.Interface
-	namespace  string
-	name       string
+	restConfig    *rest.Config
+	kubeConfig    string
+	kubeClient    kubernetes.Interface
+	metricsClient *metricsclientset.Clientset
+	namespace     string
+	name          string
 }
 
 func New(
 	restConfig *rest.Config,
 	kubeClient kubernetes.Interface,
 	kubeConfig string,
+	metricsClient *metricsclientset.Clientset,
 ) (*Framework, error) {
 	suffix, errSuffix := rand.WithRandomSuffix("lke")
 	if errSuffix != nil {
@@ -38,11 +41,12 @@ func New(
 	}
 
 	out := &Framework{
-		restConfig: restConfig,
-		kubeClient: kubeClient,
-		kubeConfig: kubeConfig,
-		name:       "lke-test",
-		namespace:  suffix,
+		restConfig:    restConfig,
+		kubeClient:    kubeClient,
+		kubeConfig:    kubeConfig,
+		metricsClient: metricsClient,
+		name:          "lke-test",
+		namespace:     suffix,
 	}
 
 	return out, nil

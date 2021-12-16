@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -90,14 +91,22 @@ var _ = Describe("CloudControllerManager", func() {
 
 	var installHelmChart = func(chartName, repoName string) {
 		var out []byte
+		var err error
 		Eventually(func() error {
-			if chartName == metricsServerName {
-				out, err = sh.Command("helm", "install", chartName, repoName, "--set", "args={--kubelet-insecure-tls}", "--kubeconfig", kubeconfigFile).Output()
-				return err
-			} else {
-				out, err = sh.Command("helm", "install", chartName, repoName, "--kubeconfig", kubeconfigFile).Output()
-				return err
+			switch chartName {
+			case metricsServerName:
+				out, err = sh.Command(
+					"helm", "install", chartName, repoName, "--set", "args={--kubelet-insecure-tls}", "--kubeconfig", kubeconfigFile,
+				).Output()
+
+			case wordpressName:
+				out, err = sh.Command(
+					"helm", "install", chartName, repoName, "--set", "volumePermissions.enabled=true,mariadb.volumePermissions.enabled=true", "--kubeconfig", kubeconfigFile,
+				).Output()
+			default:
+				err = fmt.Errorf("chart name %s not handled", chartName)
 			}
+			return err
 		}).ShouldNot(HaveOccurred())
 
 		log.Println(string(out))

@@ -1,6 +1,8 @@
 package framework
 
 import (
+	"time"
+
 	"github.com/linode/linode-k8s-e2e-tests/rand"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -13,6 +15,8 @@ var (
 	DockerRegistry = "kubedbci"
 	DBCatalogName  = "9.6-v2"
 	StorageClass   = "linode-block-storage"
+	Timeout        time.Duration
+	RetryInterval  time.Duration
 )
 
 const (
@@ -59,8 +63,10 @@ func (f *Framework) Invoke() (*Invocation, error) {
 	}
 
 	r := &rootInvocation{
-		Framework: f,
-		app:       suffix,
+		Framework:     f,
+		Timeout:       Timeout,
+		RetryInterval: RetryInterval,
+		app:           suffix,
 	}
 
 	out := &Invocation{
@@ -78,7 +84,9 @@ type Invocation struct {
 
 type rootInvocation struct {
 	*Framework
-	app string
+	Timeout       time.Duration
+	RetryInterval time.Duration
+	app           string
 }
 
 type k8sInvocation struct {

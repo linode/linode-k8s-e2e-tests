@@ -1,7 +1,6 @@
 package e2e_test
 
 import (
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -177,7 +176,7 @@ var _ = Describe("CloudControllerManager", func() {
 
 	Describe("Test", func() {
 		Context("Deploying", func() {
-			Context("a Complex Helm Chart", func() {
+			Context("a Wordpress Helm Chart (with a stateful & stateless component)", func() {
 				BeforeEach(func() {
 					By("Initializing Helm")
 					helmInit()
@@ -191,19 +190,17 @@ var _ = Describe("CloudControllerManager", func() {
 					deleteHelmChart(wordpressName)
 				})
 
-				It("should successfully deploy Wordpress helm chart and check its stateful & stateless component", func() {
+				It("should successfully deploy Wordpress helm chart and check its components", func() {
 					By("Getting Wordpress URL")
 					url, err := f.Cluster.GetHTTPEndpoints(wordpressName)
 					Expect(err).NotTo(HaveOccurred())
 
-					time.Sleep(2 * time.Minute)
-					fmt.Println(url[0])
-
-					By("Checking the Wordpress URL")
-					err = framework.WaitForHTTPResponse(url[0])
+					By("Checking the Wordpress URL in " + url[0])
+					err = f.WaitForHTTPResponse(url[0])
 					Expect(err).NotTo(HaveOccurred())
 				})
 			})
+
 			Context("a Metrics Server Helm Chart", func() {
 				var (
 					nodeMetrics *v1beta1.NodeMetricsList
@@ -233,7 +230,7 @@ var _ = Describe("CloudControllerManager", func() {
 						}
 						Expect(len(nodeMetrics.Items)).To(BeNumerically(">", 0))
 						return true
-					}, "2m", "30s").Should(BeTrue())
+					}, f.Timeout, f.RetryInterval).Should(BeTrue())
 				})
 			})
 		})

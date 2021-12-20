@@ -108,7 +108,7 @@ func (i *k8sInvocation) GetPod(name, ns string) (*core.Pod, error) {
 }
 
 func (i *k8sInvocation) WaitForReady(meta metav1.ObjectMeta) error {
-	return wait.PollImmediate(RetryInterval, RetryTimout, func() (bool, error) {
+	return wait.PollImmediate(i.RetryInterval, i.Timeout, func() (bool, error) {
 		pod, err := i.kubeClient.CoreV1().Pods(i.Namespace()).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 		if pod == nil || err != nil {
 			return false, nil

@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"path"
 	"strings"
-	"time"
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
@@ -24,8 +23,6 @@ import (
 
 const (
 	scriptDirectory = "scripts"
-	RetryInterval   = 5 * time.Second
-	RetryTimout     = 1 * time.Minute
 )
 
 func RunScript(script string, args ...string) error {
@@ -96,8 +93,8 @@ func GetHTTPResponse(link string) (bool, string, error) {
 	return resp.StatusCode == 200, string(bodyBytes), nil
 }
 
-func WaitForHTTPResponse(link string) error {
-	return wait.PollImmediate(RetryInterval, RetryTimout, func() (bool, error) {
+func (f *Invocation) WaitForHTTPResponse(link string) error {
+	return wait.PollImmediate(f.rootInvocation.RetryInterval, f.rootInvocation.Timeout, func() (bool, error) {
 		ok, resp, err := GetHTTPResponse(link)
 		if err != nil {
 			return false, nil

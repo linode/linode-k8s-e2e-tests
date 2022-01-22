@@ -101,7 +101,7 @@ var _ = Describe("CloudControllerManager", func() {
 
 			case wordpressName:
 				out, err = sh.Command(
-					"helm", "install", chartName, repoName, "--set", "volumePermissions.enabled=true,mariadb.volumePermissions.enabled=true", "--kubeconfig", kubeconfigFile,
+					"helm", "install", chartName, repoName, "--version=12.3.3", "--set", "volumePermissions.enabled=true,mariadb.volumePermissions.enabled=true", "--kubeconfig", kubeconfigFile,
 				).Output()
 			default:
 				err = fmt.Errorf("chart name %s not handled", chartName)

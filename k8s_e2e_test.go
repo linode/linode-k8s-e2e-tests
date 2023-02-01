@@ -2,16 +2,17 @@ package e2e_test
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
+
+	"log"
 
 	"github.com/codeskyblue/go-sh"
 	"github.com/linode/linode-k8s-e2e-tests/framework"
 	"github.com/linode/linode-k8s-e2e-tests/rand"
 	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -101,7 +102,7 @@ var _ = Describe("CloudControllerManager", func() {
 
 			case wordpressName:
 				out, err = sh.Command(
-					"helm", "install", chartName, repoName, "--version=12.3.3", "--set", "volumePermissions.enabled=true,mariadb.volumePermissions.enabled=true", "--kubeconfig", kubeconfigFile,
+					"helm", "install", chartName, repoName, "--version=15.2.34", "--set", "volumePermissions.enabled=true,mariadb.volumePermissions.enabled=true", "--kubeconfig", kubeconfigFile,
 				).Output()
 			default:
 				err = fmt.Errorf("chart name %s not handled", chartName)
@@ -127,13 +128,13 @@ var _ = Describe("CloudControllerManager", func() {
 					backendPod        string
 					frontendLabels    map[string]string
 					backendLabels     map[string]string
-					frontendSvcName   = "frontend-svc"
-					backendSvcName    = "hello"
+					frontendSvcName   = "hello"
+					backendSvcName    = "backend"
 					networkPolicyName = "test-network-policy"
 				)
 
 				BeforeEach(func() {
-					frontendPod = "frontend-pod"
+					frontendPod = "hello"
 					backendPod = "backend-pod"
 
 					frontendLabels = map[string]string{
@@ -166,7 +167,7 @@ var _ = Describe("CloudControllerManager", func() {
 				It("shouldn't get response from the backend service after applying network policy", func() {
 					By("Waiting for Response from the Backend Service")
 					Eventually(func() bool {
-						ok, _ := f.GetResponseFromPod(frontendPod, true)
+						ok, _ := f.GetResponseFromPod(frontendPod)
 						return ok
 					}).Should(BeTrue())
 
@@ -175,7 +176,7 @@ var _ = Describe("CloudControllerManager", func() {
 
 					By("Checking Response form the Backend Service after Applying NetworkPolicy")
 					Eventually(func() bool {
-						ok, _ := f.GetResponseFromPod(frontendPod, false)
+						ok, _ := f.GetResponseFromPod(frontendPod)
 						return ok
 					}).Should(BeFalse())
 				})

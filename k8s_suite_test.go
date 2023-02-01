@@ -9,12 +9,11 @@ import (
 
 	"github.com/linode/linode-k8s-e2e-tests/framework"
 	"github.com/linode/linode-k8s-e2e-tests/rand"
-	"github.com/onsi/ginkgo/reporters"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metricsclientset "k8s.io/metrics/pkg/client/clientset/versioned"
 )
@@ -52,8 +51,7 @@ func TestE2e(t *testing.T) {
 	RegisterFailHandler(Fail)
 	SetDefaultEventuallyTimeout(framework.Timeout)
 
-	junitReporter := reporters.NewJUnitReporter("junit.xml")
-	RunSpecsWithDefaultAndCustomReporters(t, "e2e Suite", []Reporter{junitReporter})
+	RunSpecs(t, "e2e Suite")
 }
 
 var _ = BeforeSuite(func() {

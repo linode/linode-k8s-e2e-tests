@@ -22,6 +22,7 @@ terraform.tfstate*
 
 # Kubernetes
 *.conf
+!/images/hello-frontend/*conf
 
 # KubeDB
 *.kubedb.com.yaml

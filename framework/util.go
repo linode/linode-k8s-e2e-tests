@@ -48,34 +48,21 @@ func deleteInForeground() *metav1.DeleteOptions {
 	return &metav1.DeleteOptions{PropagationPolicy: &policy}
 }
 
-func (f Framework) GetResponseFromPod(podName string, install bool) (bool, error) {
-	pods, err := f.kubeClient.CoreV1().Pods(f.Namespace()).Get(context.TODO(), podName, metav1.GetOptions{})
+func (f Framework) GetResponseFromPod(podName string) (bool, error) {
+	pod, err := f.kubeClient.CoreV1().Pods(f.Namespace()).Get(context.TODO(), podName, metav1.GetOptions{})
 	if err != nil {
 		return false, err
 	}
 
-	if install {
-		err = installCurl(f.RestConfig(), pods)
-		if err != nil {
-			return false, err
-		}
-	}
-
-	resp, err := curlInPod(f.RestConfig(), pods)
+	resp, err := curlBackendInPod(f.RestConfig(), pod)
 	if err != nil {
 		return false, err
 	}
 	return strings.Contains(resp, "Hello"), nil
 }
 
-func installCurl(config *rest.Config, pod *v1.Pod) error {
-	_, _ = kmodules.ExecIntoPod(config, pod, kmodules.Command("apt-get", "update", "-y"))
-	_, err := kmodules.ExecIntoPod(config, pod, kmodules.Command("apt-get", "install", "curl", "-y"))
-	return err
-}
-
-func curlInPod(config *rest.Config, pod *v1.Pod) (string, error) {
-	return kmodules.ExecIntoPod(config, pod, kmodules.Command("curl", "http://hello", "-s", "-m", "10"))
+func curlBackendInPod(config *rest.Config, pod *v1.Pod) (string, error) {
+	return kmodules.ExecIntoPod(config, pod, kmodules.Command("curl", "http://backend", "-s", "-m", "10"))
 }
 
 func GetHTTPResponse(link string) (bool, string, error) {

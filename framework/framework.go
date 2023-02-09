@@ -20,7 +20,7 @@ var (
 )
 
 const (
-	frontendImage = "gcr.io/google-samples/hello-frontend:1.0"
+	frontendImage = "docker.io/linode/hello-frontend:latest"
 	backendImage  = "gcr.io/google-samples/hello-go-gke:1.0"
 )
 

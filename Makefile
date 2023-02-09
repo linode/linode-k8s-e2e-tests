@@ -1,5 +1,7 @@
 export GO111MODULE=on
 
+FRONTEND_IMAGE?=docker.io/linode/hello-frontend:latest
+
 $(GOPATH)/bin/goimports:
 	GO111MODULE=off go get golang.org/x/tools/cmd/goimports
 
@@ -31,3 +33,9 @@ install-terraform:
 	wget https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip
 	unzip terraform_1.0.3_linux_amd64.zip
 	sudo mv terraform /usr/local/bin/
+
+build-frontend:
+	docker image build -t $(FRONTEND_IMAGE) --platform=linux/amd64 images/hello-frontend/
+
+push-frontend:
+	docker push $(FRONTEND_IMAGE)
